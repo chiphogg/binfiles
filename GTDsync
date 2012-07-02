@@ -18,16 +18,16 @@ AUCOMMIT_MSG="Autocommit from ${GTD_ID} at ${DATETIMESTAMP}"
 cd ${GTD_PROD:?"Need to set the \$GTD_PROD var in file ${GTDfiles}"}
 git commit -a -m "${AUCOMMIT_MSG}" > /dev/null
 git pull && git push
-cd -
+cd - > /dev/null
 
 # Synchronize notes
 cd ${GTD_NOTES:?"Need to set the \$GTD_NOTES var in file ${GTDfiles}"}
 git commit -a -m "${AUCOMMIT_MSG}" > /dev/null
 git pull && git push
-cd -
+cd - > /dev/null
 
 # Synchronize binscripts
 cd ${GTD_BIN:?"Need to set the \$GTD_BIN var in file ${GTDfiles}"}
 git commit -a -m "${AUCOMMIT_MSG}" > /dev/null
 git pull && git push
-cd -
+cd - > /dev/null
