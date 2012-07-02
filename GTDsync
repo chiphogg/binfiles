@@ -7,12 +7,21 @@ Die() { echo "${0##*/}: fatal: $1"; exit "$2"; }
 
 ERR_GENERIC=1
 
+DATETIMESTAMP=`date +"%Y-%m-%d %H:%M"`
+AUCOMMIT_MSG="Autocommit from ${GTD_ID} at ${DATETIMESTAMP}"
+
 GTDfiles="${HOME}/bin/.GTDfiles"
 [ -s "${GTDfiles}" ] || Die "First, create the file '${GTDfiles}'." "$ERR_GENERIC"
 . ${GTDfiles}
 
 # Synchronize the productivity system
 cd ${GTD_PROD:?"Need to set the \$GTD_PROD var in file ${GTDfiles}"}
-git commit -a -m "Autocommit from ${GTD_ID}"
+git commit -a -m "${AUCOMMIT_MSG}"
+git pull && git push
+cd -
+
+# Synchronize binscripts
+cd ${GTD_BIN:?"Need to set the \$GTD_BIN var in file ${GTDfiles}"}
+git commit -a -m "${AUCOMMIT_MSG}"
 git pull && git push
 cd -
