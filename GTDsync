@@ -12,7 +12,7 @@ GTDfiles="${HOME}/bin/.GTDfiles"
 . ${GTDfiles}
 
 DATETIMESTAMP=`date +"%Y-%m-%d %H:%M"`
-AUCOMMIT_MSG="Autocommit from ${GTD_ID} at ${DATETIMESTAMP}"
+AUCOMMIT_MSG="Autocommit from ${GTD_ID:?"Set the GTD_ID env. var., in file ${GTDfiles}, to an identifier for this machine"} at ${DATETIMESTAMP}"
 
 # Synchronize the productivity system
 echo "Checking productivity system:"
