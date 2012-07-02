@@ -20,6 +20,12 @@ git commit -a -m "${AUCOMMIT_MSG}"
 git pull && git push
 cd -
 
+# Synchronize notes
+cd ${GTD_NOTES:?"Need to set the \$GTD_NOTES var in file ${GTDfiles}"}
+git commit -a -m "${AUCOMMIT_MSG}"
+git pull && git push
+cd -
+
 # Synchronize binscripts
 cd ${GTD_BIN:?"Need to set the \$GTD_BIN var in file ${GTDfiles}"}
 git commit -a -m "${AUCOMMIT_MSG}"
