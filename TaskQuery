@@ -1,0 +1,170 @@
+#!/usr/bin/perl
+
+# This script lists all dated items in my productivity viki.
+#
+# SAMPLE USAGES:
+#
+## List all tasks which are due today
+# $ TaskQuery DUE
+## List all reminders from the past
+# $ TaskQuery REMIND before
+
+use Date::Calc qw(:all);
+
+######################################################################
+# Print out all the tasks of a given type and day
+sub print_tasks {
+  my ($msg) = shift @_;
+  my ($tasks) = shift @_;
+  return unless @{$tasks} > 0;
+  print "  - $msg\n";
+  foreach $line (@{$tasks}){
+    chomp $line;
+    print "    - $line\n";
+  }
+};
+
+$ok_time_mults = 'wd'; # Allowable multipliers for time (weeks, days, ...)
+######################################################################
+# Find out how many days are implied in something like, e.g., 3w (3 weeks, =21 days)
+sub num_days {
+  my $dstr = shift @_;
+  return undef unless $dstr =~ /^([+-]?\d+)([$ok_time_mults]?)$/;
+  my $time = $1;
+  my $mult = $2;
+  my $factor = 1;
+  if ($mult eq 'w') {
+    $factor = 7;
+  }
+  return $time * $factor;
+};
+
+$dayofweek = '\b(SUN|MON|TUE|WED|THU|FRI|SAT)\b';
+
+chdir ('/mnt/share/productivity/viki');
+
+######################################################################
+# First, let's figure out what day it is TODAY.
+($t_year, $t_month, $t_day) = Today();
+$t_dow = Day_of_Week($t_year,$t_month,$t_day);
+
+@allowed_keywords = qw/ BIGROCK MIT DUE REMIND RECUR /;
+# The keywords are the action items: DUE, REMIND, BIGROCK, MIT; they are the
+# first argument and are comma-separated.
+@candidates = split/\s*,\s*/,$ARGV[0];
+@keywords = ();
+$something = 0;
+foreach $k (@candidates) {
+  foreach $a (@allowed_keywords) {
+    $ak{$a} = 1 if ($k eq $a || $k eq 'ALL');
+    $something++;
+  }
+}
+die "Nothing to retrieve!\n" if ($something <= 0);
+
+# The timewords are the "when" indicators; default is 'today'.  The time
+# indicators are the second argument if given.
+$timeword = ($#ARGV >= 1) ? $ARGV[1] : 'today';
+@t_words = split/\s*,\s*/,$timeword;
+
+# Now we need to parse our timewords: for each one, expand the range of
+# acceptable days to include the days corresponding to that keyword.  e.g. if
+# the word is 'before', add all the days before today.  "+3d+8w" adds all days
+# from 3 days from now until 8 weeks from now.  Other keywords include "today"
+# and "none" (which captures undated keyword occurrences).
+#
+# The starting values criss-cross, so as to exclude all days by defualt.
+$long_ass_time = 365*1000;
+$day_min = $long_ass_time;
+$day_max = -$long_ass_time;
+$include_undated = 0;
+foreach $t_word (@t_words) {
+  if ($t_word =~ /^today$/) {
+    $day_min = 0 if ($day_min > 0);
+    $day_max = 0 if ($day_max < 0);
+  } elsif ($t_word =~ /^before$/) {
+    $day_min = -$long_ass_time;
+    $day_max = -1 if ($day_max < -1);
+  } elsif ($t_word =~ /^x$/) {
+    $include_undated = 1;
+  } elsif ($t_word =~ /^\+(\d+)([$ok_time_mults]?)$/) {
+    $days = &num_days($t_word);
+    $day_max = $days if ($day_max < $days);
+    $day_min = $days if ($day_min > $days);
+  }
+}
+
+# Now, we go thru each task which matches the keywords, and figure out which
+# day it corresponds to.  If that day falls within the minimum and maximum
+# bounds we established above, then we print it; otherwise, ignore it.
+foreach $key (@allowed_keywords)
+{
+  next if ($ak{$key} != 1);
+  @lines = `grep -E -n "$key" *.viki`;
+  next if ($lines < 0);
+  print "\n$key tasks:\n";
+  @tasks = ();
+  foreach (@lines)
+  {
+    next if /^(Today|Routines|This Week)/;
+    next if /\{DONE/;
+
+    # Determine what day this object corresponds to, relative to today
+    $delta_day = 0;
+    # If the day of the week is specified, then it corresponds to a date
+    # between yesterday (b/c $num_past_days = 1) and a week from yesterday.
+    if (/$key $dayofweek(\s*>\s*(\d{4})-(\d{2})-(\d{2}))?/) {
+      ($year, $month, $day) = ($3, $4, $5);
+      $dow = Decode_Day_of_Week($1);
+      $num_past_days = 1;  # Num. of days in the past where our date-range begins
+      # If we supplied a date
+      $delta_day = (7 + $num_past_days + $dow - $t_dow) % 7 - $num_past_days;
+      if ($year =~ /^\d{4}$/) {
+        ($nextY, $nextM, $nextD) = Add_Delta_Days($year, $month, $day, 1);
+        $how_far_ahead = Delta_Days($t_year, $t_month, $t_day,
+          $year, $month, $day) + 1;
+        while ($how_far_ahead > $delta_day) {
+          $delta_day += 7;
+        }
+      }
+    # We may also have specified the PRECISE date as YYYY-MM-DD
+    } elsif (/$key ((\d{4})-(\d{2})-(\d{2}))\s*([+-]\d+([dw])?)?/) {
+      ($year, $month, $day) = ($2, $3, $4);
+      $delta_day = Delta_Days ($t_year, $t_month, $t_day, $year, $month, $day);
+      # If we added an offset (e.g. 2009-10-14+8), then add that many days or
+      # weeks to the delta
+      if (($offset_maybe = $5) =~ /\d/) { $dd = &num_days($offset_maybe); $delta_day += $dd;}
+    # Finally, there may be NO date associated.
+    } else { 
+      $delta_day = undef;
+    }
+    next if (defined($delta_day) && ($delta_day > $day_max || $delta_day < $day_min) || !defined($delta_day) && !$include_undated);
+    s/^(.*)\.viki:\s*(\d+)/[[$1#l=$2]]/g;
+    # At this point we have a task, of the appropriate type (BIGROCK, DUE,
+    # etc.), and within the appropriate date range.
+
+    # We store them in an array, with the following legend:
+    # n  || meaning
+    # 0  -> undated
+    # 1  -> any time in the past
+    # 2+ -> (n-2) days from now
+    if (!defined($delta_day)) {
+      push (@{$tasks[0]}, $_); 
+    } elsif ($delta_day < 0) {
+      push (@{$tasks[1]}, $_);
+    } else {
+      push (@{$tasks[$delta_day + 2]}, $_);
+    }
+  }
+  # Now let's go through the array!
+
+  $ref = \@{$tasks[0]};
+  &print_tasks('Undated', $ref);
+  &print_tasks('Overdue', $tasks[1]);
+  &print_tasks('TODAY', $tasks[2]);
+  for $i ( 3 .. $#tasks ) {
+    &print_tasks(($i - 2).' days from now', $tasks[$i]);
+  }
+}
+
+print "\n";

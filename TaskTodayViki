@@ -1,0 +1,57 @@
+#!/bin/bash
+
+# This script outputs a "section" in viki-code which lists everything I have on
+# my plate for today.
+
+VIKIDIR=$HOME/productivity/viki
+TODAYFILE=Today.viki
+SWAPFILE=".$TODAYFILE.swp"
+QUERY=$HOME/bin/TaskQuery
+LOCALCONTEXTS=.localContexts
+
+cd "$VIKIDIR"
+
+#if [[ -e "$SWAPFILE" ]] 
+#then
+#	echo "Will not edit file because it is already open."
+#	exit 0 
+#fi
+
+echo "[[index]]" > "$TODAYFILE"
+echo "endamath" >> "$TODAYFILE"
+echo "#LIST:toc" >> "$TODAYFILE"
+echo >> "$TODAYFILE"
+
+# Section header
+echo "* `date '+%A, %e %B, %Y (last update: %H:%M:%S)'`" >> "$TODAYFILE"
+echo >> "$TODAYFILE"
+
+# Subsection:  today's stuff
+echo "** Today" >> "$TODAYFILE"
+echo "`"$QUERY" BIGROCK,MIT,DUE,REMIND,RECUR`" >> "$TODAYFILE"
+echo >> "$TODAYFILE"
+
+# Subsection: This week's big rocks status
+echo "** Status: big rocks for this week" >> "$TODAYFILE"
+echo "`"$QUERY" BIGROCK x,before,+7`" >> "$TODAYFILE"
+echo >> "$TODAYFILE"
+echo "*** Done!" >> "$TODAYFILE"
+echo "`grep -E 'DONE.*BIGROCK' *`" >> "$TODAYFILE"
+echo >> "$TODAYFILE"
+
+# Subsection:  Upcoming due dates
+echo "** Upcoming due dates, this week" >> "$TODAYFILE"
+echo "`"$QUERY" DUE +1,+1w`" >> "$TODAYFILE"
+echo >> "$TODAYFILE"
+
+# Subsection:  overdue stuff
+echo "** Overdue" >> "$TODAYFILE"
+echo "`"$QUERY" MIT,DUE,REMIND,RECUR before`" >> "$TODAYFILE"
+echo >> "$TODAYFILE"
+
+# Now: overwrite it, but take out the missing contexts
+if [[ -e "$LOCALCONTEXTS" ]]
+then
+	cat "$TODAYFILE" | eval $HOME/bin/ContextFilter `cat "$LOCALCONTEXTS"` > "$TODAYFILE"
+fi
+

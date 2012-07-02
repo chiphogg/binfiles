@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# GTDsync: synchronize my personal GTD system.
+
+# Handy little function I copied from Scriptmake
+Die() { echo "${0##*/}: fatal: $1"; exit "$2"; } 
+
+ERR_GENERIC=1
+
+GTDfiles="${HOME}/bin/.GTDfiles"
+[ -s "${GTDfiles}" ] || Die "First, create the file '${GTDfiles}'." "$ERR_GENERIC"
+. ${GTDfiles}
+
+# Synchronize the productivity system
+cd ${GTD_PROD:?"Need to set the \$GTD_PROD var in file ${GTDfiles}"}
+git commit -a -m "Autocommit from ${GTD_ID}"
+git pull && git push
+cd -

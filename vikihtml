@@ -1,0 +1,32 @@
+#!/bin/bash
+
+DIR=../vikiHtml
+
+# Create the HTML files.  This is time-consuming, so the user can skip it by
+# providing any command line argument.
+if [ $# -eq 0 ] 
+then
+  find . -iname \*.viki -print0 | 
+  while read -d $'\0' file
+  do
+    VIKINAME="${file#./}"
+    HTMLNAME="$DIR/${VIKINAME%.viki}.html"
+    # Only process if the HTML file does not exist, or if the viki has been
+    # updated more recently
+    if [ ! -s "$HTMLNAME" ] || [ "$HTMLNAME" -ot "$VIKINAME" ]
+    then 
+      deplate -R -e -d "$DIR" -p '\*.viki' -X -m utf8 -m code-highlight -m mark-external-urls --css deplate "$VIKINAME"
+      grep -h -Z -E "#IMG" "$VIKINAME" | 
+      while read match
+      do 
+        IMGNAME="${match##*\#IMG*: }"
+        IMGNAME="${IMGNAME%%[[:blank:]]*}"
+        ln -f "$IMGNAME" "$DIR"
+      done
+    fi
+  done
+else
+  # Giving ANY arguments is a code for "only copy over the images, but copy
+  # over ALL the images!"
+  grep -h -Z -E "#IMG" *.viki | while read match; do IMGNAME="${match##*\#IMG*: }"; IMGNAME="${IMGNAME%%[[:blank:]]*}"; ln -f "$IMGNAME" "$DIR"; done
+fi

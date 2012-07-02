@@ -1,0 +1,27 @@
+#!/usr/bin/perl
+
+# Puts a window to half the screen size: either right, left, top, or bottom
+
+use Switch;
+
+my $dgCmd = "$ENV{'HOME'}/bin/desktop_geometry 2> /dev/null";
+print "$dgCmd\n";
+my ($width, $height) = split/,/, `$dgCmd`;
+$height -= $ARGV[1] if ($ARGV[1] =~ /^\d+$/);
+my $Hwidth = int($width / 2) - 1;
+my $Hheight = int($height / 2) - 1;
+my $left = $Hwidth + 1;
+my $top = $Hheight + 1;
+
+$do_it = 1;
+switch ($ARGV[0]) {
+	case "top"    { $geometry = "0,0,$width,$Hheight"; }
+	case "bottom" { $geometry = "0,$top,$width,$Hheight"; }
+	case "left"   { $geometry = "0,0,$Hwidth,$height"; }
+	case "right"  { $geometry = "$left,0,$Hwidth,$height"; }
+	else { $do_it = 0; }
+}
+
+$cmd = "wmctrl -r :ACTIVE: -e 0,$geometry";
+`$cmd` if ($do_it == 1);
+#print "> $cmd\n"

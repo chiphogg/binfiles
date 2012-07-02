@@ -1,0 +1,14 @@
+#!/bin/bash
+
+UNIQUE_ID_STR="$1"
+PROGRAM_NAME="$2"
+
+# If ThinkingRock is running, store the window id in the variable "WIN_ID":
+WIN_ID=`wmctrl -l | grep "$UNIQUE_ID_STR" | head -1 | awk '{print $1}'`
+
+if [ -z "$WIN_ID" ]
+then # Run it if it's not already running
+	eval "$2" &
+else # Switch to the already-running copy
+	wmctrl -ia "$WIN_ID"
+fi

@@ -1,0 +1,14 @@
+#!/usr/bin/perl
+
+#my $toolheight = 48;
+my $toolheight = 0;
+
+my $xprog = 'xrandr';
+length(`which xrandr`) > 0 or die "Program '$xprog' must be installed\n";
+
+# NOTE: this logic assumes only one screen installed!
+my $res = `$xprog | grep "current"`;
+$res =~ /current (\d+) x (\d+),/;
+my ($width, $height) = ($1, $2);
+$height = $height - $toolheight;
+print "$width,$height\n";

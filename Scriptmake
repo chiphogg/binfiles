@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# Chip Hogg, Feb. 2008
+# Scriptmake version 0.1
+#
+# User supplies a scripting language and the desired name of the script file,
+# and Scriptmake will automatically create that file with the proper
+# permissions, then automatically run the user's preferred editor to edit it.
+
+ERR_BAD_ARG_CNT=1
+ERR_NO_LANG=2
+ERR_FILE_EXISTS=4
+ERR_CANT_WRITE=5
+ERR_CANT_CHMOD=6
+ERR_CANT_EDIT=7
+ERR_CANT_WRITE_TEMPLATE=8
+
+TEMPLATE_DIR="/home/chogg/.templates"
+
+Usage() { echo "Usage: ${0##*/} <script-language> <filename>"; exit "$1"; }
+Die() { echo "${0##*/}: fatal: $1"; exit "$2"; } 
+
+# First, make sure we specified a scripting language.
+[ $# -eq 2 ] || Usage "$ERR_BAD_ARG_CNT"
+
+# Now, make sure that language is valid (or at least an executable)
+LOCATION="$(command -v -- "$1" 2>/dev/null)" || Die "no such scripting language: $1" "$ERR_NO_LANG"
+
+# If the output file already exists, don't touch it!!
+[ -s "$2" ] && Die "File already exists: $2" "$ERR_FILE_EXISTS"
+
+# Now we're good to go: let's create that script!
+echo '#!'"$LOCATION" >> "$2" || Die "could not alter file: $2" "$ERR_CANT_WRITE"
+chmod a+x "$2" || Die "could not change permissions: $2" "$ERR_CANT_CHMOD"
+
+# Is there a template defined for this filetype?  If so, then paste it in
+TFILE="$TEMPLATE_DIR/$1"
+[ -s "$TFILE" ] && ( cat "$TFILE" >> "$2" || Die "Could not append template for type '$1' to file '$2'" "$ERR_CANT_WRITE_TEMPLATE" )
+
+# Edit the file
+${EDITOR} "$2" || Die "could not open editor; is your \${EDITOR} variable set?" "$ERR_CANT_EDIT"

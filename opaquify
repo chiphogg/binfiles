@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# Changes the background on the given pngs to be white, not transparent
+
+for I in "$@"
+do
+	mogrify -background white -layers flatten "$I"
+done
