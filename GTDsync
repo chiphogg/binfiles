@@ -15,19 +15,25 @@ DATETIMESTAMP=`date +"%Y-%m-%d %H:%M"`
 AUCOMMIT_MSG="Autocommit from ${GTD_ID} at ${DATETIMESTAMP}"
 
 # Synchronize the productivity system
+echo "Checking productivity system:"
 cd ${GTD_PROD:?"Need to set the \$GTD_PROD var in file ${GTDfiles}"}
 git commit -a -m "${AUCOMMIT_MSG}" > /dev/null
 git pull && git push
 cd - > /dev/null
+echo
 
 # Synchronize notes
+echo "Checking notes"
 cd ${GTD_NOTES:?"Need to set the \$GTD_NOTES var in file ${GTDfiles}"}
 git commit -a -m "${AUCOMMIT_MSG}" > /dev/null
 git pull && git push
 cd - > /dev/null
+echo
 
 # Synchronize binscripts
+echo "Checking binscripts"
 cd ${GTD_BIN:?"Need to set the \$GTD_BIN var in file ${GTDfiles}"}
 git commit -a -m "${AUCOMMIT_MSG}" > /dev/null
 git pull && git push
 cd - > /dev/null
+echo
