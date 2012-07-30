@@ -14,6 +14,18 @@ GTDfiles="${HOME}/bin/.GTDfiles"
 DATETIMESTAMP=`date +"%Y-%m-%d %H:%M"`
 AUCOMMIT_MSG="Autocommit from ${GTD_ID:?"Set the GTD_ID env. var., in file ${GTDfiles}, to an identifier for this machine"} at ${DATETIMESTAMP}"
 
+# Synchronize dotfiles
+echo "Checking dotfiles"
+if [ "`ghar status dotfiles`" = 'dotfiles: dirty' ]
+then
+  echo ">$GHAR_DIR<"
+  cd "$GHAR_DIR/dotfiles"
+  git commit -a -m "${AUCOMMIT_MSG}" > /dev/null
+  git pull && git push
+  cd - > /dev/null
+  echo
+fi
+
 # Synchronize the productivity system
 echo "Checking productivity system:"
 cd ${GTD_PROD:?"Need to set the \$GTD_PROD var in file ${GTDfiles}"}
@@ -37,14 +49,3 @@ git commit -a -m "${AUCOMMIT_MSG}" > /dev/null
 git pull && git push
 cd - > /dev/null
 echo
-
-# Synchronize dotfiles
-echo "Checking dotfiles"
-if [ "`ghar status dotfiles`" = 'dotfiles: dirty' ]
-then
-  cd "$GHAR_DIR/dotfiles"
-  git commit -a -m "${AUCOMMIT_MSG}" > /dev/null
-  git pull && git push
-  cd - > /dev/null
-  echo
-fi
