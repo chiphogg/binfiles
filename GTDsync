@@ -37,3 +37,14 @@ git commit -a -m "${AUCOMMIT_MSG}" > /dev/null
 git pull && git push
 cd - > /dev/null
 echo
+
+# Synchronize dotfiles
+echo "Checking dotfiles"
+if [ "`ghar status dotfiles`" = 'dotfiles: dirty' ]
+then
+  cd "$GHAR_DIR/dotfiles"
+  git commit -a -m "${AUCOMMIT_MSG}" > /dev/null
+  git pull && git push
+  cd - > /dev/null
+  echo
+fi
