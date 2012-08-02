@@ -16,14 +16,15 @@ AUCOMMIT_MSG="Autocommit from ${GTD_ID:?"Set the GTD_ID env. var., in file ${GTD
 
 # Synchronize dotfiles
 echo "Checking dotfiles"
-if [ "`ghar status dotfiles`" = 'dotfiles: dirty' ]
+cd "$GHAR_DIR/dotfiles"
+git commit -a -m "${AUCOMMIT_MSG}" > /dev/null
+git pull && git push
+cd - > /dev/null
+echo
+DOTFILE_STATUS="`ghar install --status dotfiles | tail -1`"
+if [[ "$DOTFILE_STATUS" =~ 'error' ]]
 then
-  echo ">$GHAR_DIR<"
-  cd "$GHAR_DIR/dotfiles"
-  git commit -a -m "${AUCOMMIT_MSG}" > /dev/null
-  git pull && git push
-  cd - > /dev/null
-  echo
+  ghar install dotfiles
 fi
 
 # Synchronize the productivity system
