@@ -18,7 +18,7 @@ ERR_CANT_WRITE_TEMPLATE=8
 TEMPLATE_DIR="/home/chogg/.templates"
 
 Usage() { echo "Usage: ${0##*/} <script-language> <filename>"; exit "$1"; }
-Die() { echo "${0##*/}: fatal: $1"; exit "$2"; } 
+Die() { echo "${0##*/}: fatal: $1"; exit "$2"; }
 
 # First, make sure we specified a scripting language.
 [ $# -eq 2 ] || Usage "$ERR_BAD_ARG_CNT"
