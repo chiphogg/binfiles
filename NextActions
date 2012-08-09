@@ -4,9 +4,9 @@
 # Actions".  A "Next Action" is a line which starts with an "@" sign, where
 # nothing is stopping me from doing that action.
 #What constitutes a "next action"?
-#	1) Parent is a "current project"
-#		(In other words: either an unordered list element, or the first *ordered* list element.  Or, there is no parent.)
-#	2) First "@" element which is not "DONE"
+# 1) Parent is a "current project"
+#   (In other words: either an unordered list element, or the first *ordered* list element.  Or, there is no parent.)
+# 2) First "@" element which is not "DONE"
 
 # Only look in the following files
 my @files = qw/Projects Literature Goals/;
@@ -16,8 +16,8 @@ chdir "$prodDir";
 my $contexts = "";
 my $space = "";
 while ($context = shift @ARGV) {
-	$contexts .= "$space$context";
-	$space = ' ';
+  $contexts .= "$space$context";
+  $space = ' ';
 }
 
 ################################################################################
@@ -27,25 +27,25 @@ while ($context = shift @ARGV) {
 # Calculates the depth of this list element in the hierarchy.  There are two
 # spaces for every level of depth.
 sub depth_of_list_element {
-	$_ = shift @_;
-	/^(\s+)[-*#@]\s+\S/ or return 0;
-	return (length($1) / 2);
+  $_ = shift @_;
+  /^(\s+)[-*#@]\s+\S/ or return 0;
+  return (length($1) / 2);
 }
 
 sub check_contexts {
-	$_ = shift @_;
-	s/"/\\"/g;
-	return `ContextFilter $contexts "$_"`;
+  $_ = shift @_;
+  s/"/\\"/g;
+  return `ContextFilter $contexts "$_"`;
 }
 
 # Simply discard lines until we find one less deep than "$depth".
 sub skip_list {
-	my ($depth, @lines) = (@_);
-	while ($_ = shift @lines) {
-		$linedepth = &depth_of_list_element($_);
-		unshift (@lines, $_) and last if ($linedepth < $depth);
-	}
-	return @lines;
+  my ($depth, @lines) = (@_);
+  while ($_ = shift @lines) {
+    $linedepth = &depth_of_list_element($_);
+    unshift (@lines, $_) and last if ($linedepth < $depth);
+  }
+  return @lines;
 }
 
 # "Process" a hierarchical list, i.e. look for physical actions which are not
@@ -53,53 +53,53 @@ sub skip_list {
 # heading at most once, and print out all the physical actions associated with
 # it.
 sub process_list_recurse {
-	my ($linecount, $baseFileName, $depth, $title, $printed, @lines) = (@_);
-	$blocked = 0;
-	while ($_ = shift @lines) {
-		# First: calculate the depth, and make sure it's deep enough for our
-		# current level in the hierarchy.  (If it's less deep, then we are finished
-		# with this list, so put it back and break out of the loop.)
-		$linedepth = &depth_of_list_element($_);
-		unshift (@lines, $_) and last if ($linedepth < $depth);
+  my ($linecount, $baseFileName, $depth, $title, $printed, @lines) = (@_);
+  $blocked = 0;
+  while ($_ = shift @lines) {
+    # First: calculate the depth, and make sure it's deep enough for our
+    # current level in the hierarchy.  (If it's less deep, then we are finished
+    # with this list, so put it back and break out of the loop.)
+    $linedepth = &depth_of_list_element($_);
+    unshift (@lines, $_) and last if ($linedepth < $depth);
 
-		if ($linedepth > $depth) {
-			unshift (@lines, $_) and @lines = &process_list_recurse($linecount, $baseFileName, $linedepth, $title, $printed, @lines) ;
-		} else {
-			# This section deals with the case where the current line is just the
-			# right level of hierarchy (and let's start with a sanity check to make
-			# sure that this is so).
-			die "It is extremely unclear to me how this could have happened.\n" if ($linedepth != $depth);
+    if ($linedepth > $depth) {
+      unshift (@lines, $_) and @lines = &process_list_recurse($linecount, $baseFileName, $linedepth, $title, $printed, @lines) ;
+    } else {
+      # This section deals with the case where the current line is just the
+      # right level of hierarchy (and let's start with a sanity check to make
+      # sure that this is so).
+      die "It is extremely unclear to me how this could have happened.\n" if ($linedepth != $depth);
 
-			# Skip everything in sublists if this is checked off as "DONE"
-			if (/{DONE:/) { #}
-				@lines = &skip_list($depth + 1, @lines) and next;
-			} 
-			# Now: is this an action?  If so, then check it against the current
-			# context list, and print it out if there is a match
-			if (/^\s+(#\s+)?@\s+\S/) {
-				# See if this action matches our context list.  If not, return an
-				# empty string.  If it does match, then do the printing.
-				$line = &check_contexts($_);
-				if (length($line) > 0) {
-					print "\n$title\n" unless ($$printed++ > 0);
-					$linenumber = $linecount - $#lines;
-					print "  - [[$baseFileName#l=$linenumber]] $line\n";
-				}
-			} 
-			# If this line started with a pound sign, skip other lines at the same depth
-			if (/^\s+#\s+\S/) {
-				@lines = &process_list_recurse($linecount, $baseFileName, $linedepth + 1, $title, $printed, @lines) unless /^\s+#\s+@/;
-				@lines = &skip_list($depth, @lines);
-			}
-		}
-	}
-	return @lines;
+      # Skip everything in sublists if this is checked off as "DONE"
+      if (/{DONE:/) { #}
+        @lines = &skip_list($depth + 1, @lines) and next;
+      } 
+      # Now: is this an action?  If so, then check it against the current
+      # context list, and print it out if there is a match
+      if (/^\s+(#\s+)?@\s+\S/) {
+        # See if this action matches our context list.  If not, return an
+        # empty string.  If it does match, then do the printing.
+        $line = &check_contexts($_);
+        if (length($line) > 0) {
+          print "\n$title\n" unless ($$printed++ > 0);
+          $linenumber = $linecount - $#lines;
+          print "  - [[$baseFileName#l=$linenumber]] $line\n";
+        }
+      } 
+      # If this line started with a pound sign, skip other lines at the same depth
+      if (/^\s+#\s+\S/) {
+        @lines = &process_list_recurse($linecount, $baseFileName, $linedepth + 1, $title, $printed, @lines) unless /^\s+#\s+@/;
+        @lines = &skip_list($depth, @lines);
+      }
+    }
+  }
+  return @lines;
 }
 
 sub process_list {
-	my ($linecount, $baseFileName, $depth, $title, @lines) = (@_);
-	$printed = 0;
-	@lines = &process_list_recurse($linecount, $baseFileName, $depth, $title, \$printed, @lines);
+  my ($linecount, $baseFileName, $depth, $title, @lines) = (@_);
+  $printed = 0;
+  @lines = &process_list_recurse($linecount, $baseFileName, $depth, $title, \$printed, @lines);
 }
 
 # Process the content of a given section.  This includes either
@@ -109,19 +109,19 @@ sub process_list {
 # i.e. the first element in the array is the first line which is not part of
 # this section.
 sub process_section {
-	my ($linecount, $baseFileName, $depth, $title, @lines) = (@_);
-	my $nextdepth = $depth + 1;
-	while ($#lines > 0) {
-		$_ = shift @lines;
-		if (/^\*{$nextdepth}\**\s+(\S.*)$/) {
-			@lines = &process_section($linecount, $baseFileName, $nextdepth, $title.' : '.$1, @lines);
-		} elsif (/^\*+\s+(\S.*)$/) {
-			unshift (@lines, $_) and last;
-		} elsif (/^(  )+[-#@*]\s+\S/) {
-			unshift (@lines, $_) and @lines = &process_list($linecount, $baseFileName, 1, $title, @lines);
-		}
-	}
-	return @lines;
+  my ($linecount, $baseFileName, $depth, $title, @lines) = (@_);
+  my $nextdepth = $depth + 1;
+  while ($#lines > 0) {
+    $_ = shift @lines;
+    if (/^\*{$nextdepth}\**\s+(\S.*)$/) {
+      @lines = &process_section($linecount, $baseFileName, $nextdepth, $title.' : '.$1, @lines);
+    } elsif (/^\*+\s+(\S.*)$/) {
+      unshift (@lines, $_) and last;
+    } elsif (/^(  )+[-#@*]\s+\S/) {
+      unshift (@lines, $_) and @lines = &process_list($linecount, $baseFileName, 1, $title, @lines);
+    }
+  }
+  return @lines;
 }
 
 ################################################################################
@@ -130,28 +130,28 @@ sub process_section {
 
 # Look through all the files
 foreach $file (@files) {
-	$fname = "$file.viki";
-	# Read all the lines from the file into memory
-	open FILE, "$fname" or (print "Could not open file '$fname'; skipping\n" and next);
-	my @lines = ();
-	while (<FILE>) {
-		chomp;
-		push (@lines, $_);
-	}
-	close FILE;
-	$linecount = $#lines;
+  $fname = "$file.viki";
+  # Read all the lines from the file into memory
+  open FILE, "$fname" or (print "Could not open file '$fname'; skipping\n" and next);
+  my @lines = ();
+  while (<FILE>) {
+    chomp;
+    push (@lines, $_);
+  }
+  close FILE;
+  $linecount = $#lines;
 
-	# Read and discard until we hit the first top-level section
-	while ($#lines > 0) {
-		$_ = shift @lines;
-		last if (/^\*\s+\S/);
-	}
+  # Read and discard until we hit the first top-level section
+  while ($#lines > 0) {
+    $_ = shift @lines;
+    last if (/^\*\s+\S/);
+  }
 
-	# Pick out the content of the line (i.e. discard initial whitespace 
-	/^\*\s+(\S.*)$/;
-	while ($#lines > 0) {
-		@lines = &process_section($linecount, $file, 1, $1, @lines);
-		last unless $_ = shift @lines;
-		/^\*\s+(\S.*)$/;
-	}
+  # Pick out the content of the line (i.e. discard initial whitespace 
+  /^\*\s+(\S.*)$/;
+  while ($#lines > 0) {
+    @lines = &process_section($linecount, $file, 1, $1, @lines);
+    last unless $_ = shift @lines;
+    /^\*\s+(\S.*)$/;
+  }
 }
