@@ -3,7 +3,7 @@
 # This script outputs a "section" in viki-code which lists everything I have on
 # my plate for today.
 
-VIKIDIR=$HOME/productivity/viki
+VIKIDIR=$HOME/productivity/oldviki
 TODAYFILE=Today.viki
 SWAPFILE=".$TODAYFILE.swp"
 QUERY=$HOME/bin/TaskQuery
