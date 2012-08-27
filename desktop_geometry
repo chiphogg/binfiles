@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
-#my $toolheight = 48;
-my $toolheight = 0;
+my $toolheight = 48;
+#my $toolheight = 0;
 
 my $xprog = 'xrandr';
 length(`which xrandr`) > 0 or die "Program '$xprog' must be installed\n";

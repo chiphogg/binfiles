@@ -15,11 +15,11 @@ my $top = $Hheight + 1;
 
 $do_it = 1;
 switch ($ARGV[0]) {
-	case "top"    { $geometry = "0,0,$width,$Hheight"; }
-	case "bottom" { $geometry = "0,$top,$width,$Hheight"; }
-	case "left"   { $geometry = "0,0,$Hwidth,$height"; }
-	case "right"  { $geometry = "$left,0,$Hwidth,$height"; }
-	else { $do_it = 0; }
+  case "top"    { $geometry = "0,0,$width,$Hheight"; }
+  case "bottom" { $geometry = "0,$top,$width,$Hheight"; }
+  case "left"   { $geometry = "0,0,$Hwidth,$height"; }
+  case "right"  { $geometry = "$left,0,$Hwidth,$height"; }
+  else { $do_it = 0; }
 }
 
 $cmd = "wmctrl -r :ACTIVE: -e 0,$geometry";
