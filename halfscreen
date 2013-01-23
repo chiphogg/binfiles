@@ -1,17 +1,19 @@
 #!/usr/bin/perl
 
 # Puts a window to half the screen size: either right, left, top, or bottom
+# Or puts it in one of the corners, quarter-sized, because hey, why not!
 
 use Switch;
 
 my $dgCmd = "$ENV{'HOME'}/bin/desktop_geometry 2> /dev/null";
-print "$dgCmd\n";
 my ($width, $height) = split/,/, `$dgCmd`;
 $height -= $ARGV[1] if ($ARGV[1] =~ /^\d+$/);
 my $Hwidth = int($width / 2) - 1;
 my $Hheight = int($height / 2) - 1;
 my $left = $Hwidth + 1;
 my $top = $Hheight + 1;
+my $titlebar = ($ARGV[2] =~ /^\d+$/ ? $ARGV[2] : 0);
+$Hheight -= $titlebar;
 
 $do_it = 1;
 switch ($ARGV[0]) {
@@ -19,6 +21,11 @@ switch ($ARGV[0]) {
   case "bottom" { $geometry = "0,$top,$width,$Hheight"; }
   case "left"   { $geometry = "0,0,$Hwidth,$height"; }
   case "right"  { $geometry = "$left,0,$Hwidth,$height"; }
+  # Quarter-screen commands
+  case "topleft"     { $geometry = "0,0,$Hwidth,$Hheight"; }
+  case "bottomleft"  { $geometry = "0,$top,$Hwidth,$Hheight"; }
+  case "bottomright" { $geometry = "$left,$top,$Hwidth,$Hheight"; }
+  case "topright"    { $geometry = "$left,0,$Hwidth,$Hheight"; }
   else { $do_it = 0; }
 }
 
