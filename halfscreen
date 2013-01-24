@@ -7,13 +7,20 @@ use Switch;
 
 my $dgCmd = "$ENV{'HOME'}/bin/desktop_geometry 2> /dev/null";
 my ($width, $height) = split/,/, `$dgCmd`;
+
+# Exclude area occupied by the bottom bar in fluxbox from calculations.
 $height -= $ARGV[1] if ($ARGV[1] =~ /^\d+$/);
+
+# Compute sizes and boundaries.
 my $Hwidth = int($width / 2) - 1;
 my $Hheight = int($height / 2) - 1;
 my $left = $Hwidth + 1;
 my $top = $Hheight + 1;
 my $titlebar = ($ARGV[2] =~ /^\d+$/ ? $ARGV[2] : 0);
+
+# Compensate for titlebar height.
 $Hheight -= $titlebar;
+$height -= $titlebar;
 
 $do_it = 1;
 switch ($ARGV[0]) {
