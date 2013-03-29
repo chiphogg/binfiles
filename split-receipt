@@ -1,0 +1,27 @@
+#!/usr/bin/python
+
+import collections
+import fileinput
+
+taxed = collections.Counter()
+# Later on, I'll need an easy way to mark an item as "untaxed".
+untaxed = collections.Counter()
+total_tax = 0
+
+for line in fileinput.input():
+    amount, category = line.split()
+    if category == 'tax':
+        total_tax += float(amount)
+    else:
+        taxed.update({category: float(amount)})
+
+# Distribute the tax amongst the tax categories.
+category_fractions = {k: taxed[k] / sum(taxed.values()) for k in taxed}
+tax = {k: round(category_fractions[k] * total_tax, 2) for k in category_fractions}
+tax[tax.keys()[0]] += (total_tax - sum(tax.values()))  # Make sure it adds up down to the penny!
+
+total = untaxed + taxed
+total.update(tax)
+
+for category in total:
+    print '{:>40s}: {:10,.2f}'.format(category, total[category])
