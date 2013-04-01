@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# Print a timestamp with millisecond resolution.
+# Leading digits for the seconds-part are discarded to help the result fit
+# within a 32-bit integer.
+
+S=`date +%s`
+N=`date +%N`
+echo "${S:5}${N:0:3}"
