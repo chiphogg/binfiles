@@ -4,24 +4,43 @@ import collections
 import fileinput
 
 taxed = collections.Counter()
-# Later on, I'll need an easy way to mark an item as "untaxed".
 untaxed = collections.Counter()
 total_tax = 0
+untaxed_marker = '!'
+
+items = collections.defaultdict(collections.Counter)
+
+longest_category_length = 0
 
 for line in fileinput.input():
-    amount, category = line.split()
-    if category == 'tax':
+    line_only = line.rstrip('\r\n')
+    amount, what = line_only.split(None, 1)
+    if what == 'tax':
         total_tax += float(amount)
     else:
-        taxed.update({category: float(amount)})
+        # Split out the item description, if present
+        remaining_terms = what.split(None, 1)
+        category = remaining_terms[0]
+        longest_category_length = max(longest_category_length, len(category))
+        if len(remaining_terms) > 1:
+            item = remaining_terms[1]
+            items[category].update({item})
+        if amount.endswith(untaxed_marker):
+            untaxed.update({category: float(amount[:-1])})
+        else:
+            taxed.update({category: float(amount)})
 
 # Distribute the tax amongst the tax categories.
-category_fractions = {k: taxed[k] / sum(taxed.values()) for k in taxed}
-tax = {k: round(category_fractions[k] * total_tax, 2) for k in category_fractions}
-tax[tax.keys()[0]] += (total_tax - sum(tax.values()))  # Make sure it adds up down to the penny!
+tax_fractions = {k: taxed[k] / sum(taxed.values()) for k in taxed}
+tax = {k: round(tax_fractions[k] * total_tax, 2) for k in tax_fractions}
+
+# Make sure it adds up down to the penny!
+tax[tax.keys()[0]] += (total_tax - sum(tax.values()))
 
 total = untaxed + taxed
 total.update(tax)
 
+format_string = '{:8,.2f}  {:' + str(longest_category_length) + '}  {}'
 for category in total:
-    print '{:>40s}: {:10,.2f}'.format(category, total[category])
+    print format_string.format(total[category], category,
+            ', '.join(items[category].keys()))
