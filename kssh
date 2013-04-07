@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Charles Hogg 2013
+#
+# For easy passwordless ssh using kerberos -- only type password once per day!
+#
+# Runs kerberos authentication if you don't already have valid credentials, then
+# passes all arguments through to ssh.
+
+klist -s || kinit
+ssh "$@"
