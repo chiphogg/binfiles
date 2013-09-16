@@ -7,5 +7,5 @@
 # Runs kerberos authentication if you don't already have valid credentials, then
 # passes all arguments through to ssh.
 
-klist -s || kinit
+kinit -R || kinit
 ssh "$@"
