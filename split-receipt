@@ -43,9 +43,13 @@ total.update(tax)
 money_format = '{:8,.2f}  '
 format_string = money_format + '{:' + str(longest_category_length) + '}  {}'
 grand_total = 0
+longest_string_length = 0
 for category in total:
     grand_total += total[category]
-    print format_string.format(total[category], category,
+    line = format_string.format(total[category], category,
             ', '.join(items[category].keys()))
+    print line
+    longest_string_length = max(longest_string_length, len(line))
 
+print longest_string_length * '='
 print (money_format + '{}').format(grand_total, 'GRAND TOTAL')
