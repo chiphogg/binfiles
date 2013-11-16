@@ -6,6 +6,7 @@ import fileinput
 taxed = collections.Counter()
 untaxed = collections.Counter()
 total_tax = 0
+supplied_total = None
 untaxed_marker = '!'
 
 items = collections.defaultdict(collections.Counter)
@@ -17,6 +18,8 @@ for line in fileinput.input():
     amount, what = line_only.split(None, 1)
     if what == 'tax':
         total_tax += float(amount)
+    elif what == 'total':
+        supplied_total = float(amount)
     else:
         # Split out the item description, if present
         remaining_terms = what.split(None, 1)
@@ -29,6 +32,15 @@ for line in fileinput.input():
             untaxed.update({category: float(amount[:-1])})
         else:
             taxed.update({category: float(amount)})
+
+# If there is any leftover amount, make a category for it.
+# (Obviously, this requires the user to have specified the 'total'.)
+if supplied_total:
+    subtotal = sum(untaxed.values()) + sum(taxed.values()) + total_tax
+    leftover = supplied_total - subtotal
+    # We assume this "default" category gets taxed too.
+    # (If this isn't true, you have to enter it manually for now.)
+    taxed.update({'LEFTOVER': leftover})
 
 # Distribute the tax amongst the tax categories.
 tax_fractions = {k: taxed[k] / sum(taxed.values()) for k in taxed}
