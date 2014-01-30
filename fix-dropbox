@@ -1,0 +1,49 @@
+#!/usr/bin/python
+
+import collections
+import distutils.dir_util
+import os
+import string
+import sys
+
+
+def FixLowercasedDirectories(path):
+    """Put content into correctly-cased directory, deleting lowercased dupe.
+
+    When you download a .zip of a directory, Dropbox appears to create two
+    directories for each subdirectory: a lowercased version which (mostly)
+    contains the content, and a correctly-cased version which is (mostly)
+    empty.  This script moves the content into the correctly-cased version and
+    deletes the lowercased dupe.  It proceeds recursively, fixing deeper
+    directories first.
+
+    Args:
+        path: A string representing the path to fix.
+    """
+    # Organize directories into sets of pairs.
+    directory_sets = collections.defaultdict(list)
+    for filename in os.listdir(path):
+        filename = os.path.join(path, filename)
+        if os.path.isdir(filename):
+            directory_sets[string.lower(filename)].append(filename)
+
+    for lowercased_directory in directory_sets.keys():
+        # We can only do anything if there are precisely two directories, and
+        # exactly one of them is equal to the (lowercased) key.
+        if len(directory_sets[lowercased_directory]) == 2:
+            directory_sets[lowercased_directory].remove(lowercased_directory)
+            if len(directory_sets[lowercased_directory]) == 1:
+                correct_name = directory_sets[lowercased_directory].pop()
+                FixLowercasedDirectories(lowercased_directory)
+                FixLowercasedDirectories(correct_name)
+                distutils.dir_util.copy_tree(lowercased_directory,
+                                             correct_name)
+                distutils.dir_util.remove_tree(lowercased_directory)
+
+
+# Fix the path indicated by the command line argument.
+try:
+    if os.path.isdir(sys.argv[1]):
+        FixLowercasedDirectories(sys.argv[1])
+except IndexError:
+    print "Usage: fix-dropbox <path>"
