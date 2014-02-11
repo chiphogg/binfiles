@@ -1,4 +1,0 @@
-#!/bin/bash
-
-TEXCMD="latex --src-specials"
-${TEXCMD} "$1" && ${TEXCMD} "$1"

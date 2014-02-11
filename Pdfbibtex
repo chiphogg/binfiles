@@ -1,3 +1,0 @@
-#!/bin/bash
-
-Bibtex "$1" pdflatex && evince "${1%.tex}.pdf"

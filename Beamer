@@ -1,5 +1,0 @@
-#!/bin/bash
-
-TEXCMD="xelatex"
-NAME=${1%.tex}
-${TEXCMD} "$NAME" && ${TEXCMD} "$NAME" && evince "$NAME.pdf"
