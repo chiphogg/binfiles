@@ -1,0 +1,10 @@
+#!/usr/bin/python
+
+import random
+import sys
+
+word_file = "/usr/share/dict/words"
+word_list = open(word_file).read().splitlines()
+num_words = int(sys.argv[1]) if len(sys.argv) > 1 else 1
+
+print ' '.join(map(lambda x: random.choice(word_list), range(num_words)))
