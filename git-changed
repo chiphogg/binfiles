@@ -1,0 +1,6 @@
+#!/bin/bash
+# List all the "changed" (i.e., modified and untracked) files vs. some branch.
+# See: http://thediscoblog.com/blog/2014/03/29/custom-git-commands-in-3-steps/
+
+git diff --name-only $1
+git ls-files --other --exclude-standard
