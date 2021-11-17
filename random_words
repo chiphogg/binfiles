@@ -4,7 +4,9 @@ import random
 import sys
 
 word_file = "/usr/share/dict/words"
-word_list = open(word_file).read().splitlines()
+with open(word_file) as f:
+    word_list = [w.lstrip().rstrip() for w in f if "'" not in w]
+
 num_words = int(sys.argv[1]) if len(sys.argv) > 1 else 1
 
-print ' '.join(map(lambda x: random.choice(word_list), range(num_words)))
+print(' '.join(map(lambda x: random.choice(word_list), range(num_words))))
