@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 # Run ripgrep in vimgrep mode, but separate files with blank lines.
 
