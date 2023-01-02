@@ -2,7 +2,7 @@
 
 # Run ripgrep in vimgrep mode, but separate files with blank lines.
 
-rg --vimgrep $@ | while IFS= read -r LINE; do
+rg --vimgrep "$@" | while IFS= read -r LINE; do
   FILE="${LINE%%:*}"
   if [ "$FILE" != "$LAST_FILE" ]; then
     [ ! -z "$LAST_FILE" ] && echo ''
